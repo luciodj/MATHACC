@@ -29,8 +29,10 @@ WEIGHT  = 0.300 # kg
 LENGTH  = 0.30  # m
 DELTA_T = 0.01  # s
 GRAVITY = -9.81 # m/s2
+TORQUE  =  .2   # kgm/s2
 
-fire = False
+class Sim(object):
+    fire = False
 
 class PID(object):
     'Proportional Integral and Derivative controller'
@@ -57,44 +59,65 @@ class Pendulum(object):
     def __init__(self, canvas):
         self.canvas = canvas
         self.vb = 0 # base speed fixed for now
-        self.x = X_ORG  
-        self.a = (math.pi/2) + 0.01 # -90 deg, start vertical
-        self.va = 0  # angular velocity
+        self.x = 0  
+        self.tx = 0
+        self.vtx = 0
+        self.vty = 0
+        self.ty = LENGTH
         self.vx = 0  # horziontal speed 
-        self.vy = 0  # vertical speed
-        # self.pid = PID(KP, KI, KD)
+        self.a = (math.pi/2)  # -90 deg, start vertical
+        self.va = 0  # angular velocity
         self.pendulum = self.canvas.create_line( X_ORG, Y_GND, X_ORG, Y_GND, width=2, fill='red')
         self.top = self.canvas.create_oval(X_ORG-5, Y_GND-5, X_ORG+5, Y_GND+5, fill='red')
         self.canvas.create_rectangle(WX-W_GRAPH, Y_GND - N_POINTS, WX, Y_GND, outline='green', fill='black')
         self.points = []
         self.npoints = 0
+        self.F = 0
         self.gline = None
+        self.pid = PID(KP, KI, KD) 
         self.draw()
+        print( self.tx, self.ty)
 
     def update(self):
         'perform one step in the physics simulation'
-        self.va += GRAVITY * math.cos(self.a) / LENGTH * DELTA_T   # gravity component
-        # self.vx += self.vb * DELTA_T    # horiz base component
+        pid = self.pid.compute(math.pi/2 - self.a)    # compute error as the angle diff from vertical
+        if pid > 1.0 : pid = 1.0 # saturate PWM to 100%
+        if pid < -1.0 : pid = -1.0
+
+        # integrate forces
+        self.vtx += GRAVITY * math.cos(self.a) * DELTA_T   # gravity component
+        self.vx += self.F / WEIGHT * math.sin(self.a) * DELTA_T # base velocity
 
         # integrations
-        self.a += self.va * DELTA_T
+        self.tx += self.vtx * DELTA_T
+        self.x += self.vx * DELTA_T
+
+        dx = self.tx - self.x
+        self.a = math.acos(dx / LENGTH)
 
         # checks 
-        if self.a > math.pi : 
-            self.a = math.pi
-            self.va = -self.va * .9
-        if self.a < 0 : 
-            self.a = 0
-            self.va = -self.va * .9
+        if dx > LENGTH: 
+            self.ty = 0
+            self.tx = self.x + LENGTH * dx/abs(dx)
+        else : 
+            self.ty = math.sqrt(LENGTH * LENGTH - dx * dx)
         
+        if self.x < -WX/SCALE  or self.x > WX/SCALE: 
+            Sim.fire = False
+        if self.a > math.pi or self.a < 0:
+            Sim.fire = False
+         
+        # updates
+        self.F = pid * TORQUE
+
         # add to chart
-        self.points.append(self.va)
+        self.points.append(dx*SCALE) 
 
     def draw(self):
-        'initial drawing of the pendulum'
-        x = X_ORG + LENGTH * math.cos(self.a) * SCALE
-        y = Y_GND - LENGTH * math.sin(self.a) * SCALE
-        self.canvas.coords(self.pendulum, x, y, X_ORG, Y_GND)
+        'draw the pendulum'
+        x = X_ORG + self.tx * SCALE
+        y = Y_GND - self.ty * SCALE
+        self.canvas.coords(self.pendulum, x, y, X_ORG + self.x * SCALE, Y_GND)
         self.canvas.coords(self.top, x-5, y-5, x+5, y+5)
 
         'draw graph(s)'
@@ -116,7 +139,7 @@ class Pendulum(object):
 class APPWindow(object):
     'main and only application window'
     def __init__(self):
-        self.fire = False
+        Sim.fire = False
         self.pid = PID(KP, KI, KD)
         win = tk.Tk()
         win.title('This is Rocket Science')
@@ -165,7 +188,7 @@ class APPWindow(object):
 
     def cmd_fire(self, _):
         'start simulation'
-        self.fire = True
+        Sim.fire = True
 
     def animation(self):
         'animation step'
@@ -180,7 +203,7 @@ class APPWindow(object):
             # if self.fire > 0:
                 # self.fire -= 1
             # thrust = 1.0 if self.fire > 0 else 0
-        if self.fire :
+        if Sim.fire :
             self.pendulum.update()
             self.pendulum.draw()
         self.win.after(int(1000*DELTA_T), self.animation) # delay in ms

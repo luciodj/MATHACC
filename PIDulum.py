@@ -9,9 +9,9 @@ import tkinter as tk
 import math
 import random
 
-KP = 0.89       
-KI = 0.028      
-KD = 0.15       
+KP = 0.70       
+KI = 0.20      
+KD = 0.40       
 
 WX = 640        # pixel
 WY = 480        
@@ -184,9 +184,9 @@ class APPWindow(object):
                   command=self.cmd_quit).grid(padx=10, pady=10, row=3, column=3)
         tk.Scale(win, label='Kp', variable=self.Kp, from_=0.0, to=1.0, resolution=0.05, 
                 command=update_pid).grid(padx=10, sticky='NS', pady=10, row=2, column=4)
-        tk.Scale(win, label='Kd', variable=self.Kd, from_=0.0, to=1.0, resolution=0.05, 
-                command=update_pid).grid(padx=10, sticky='NS', pady=10, row=2, column=5)
         tk.Scale(win, label='Ki', variable=self.Ki, from_=0.0, to=1.0, resolution=0.05, 
+                command=update_pid).grid(padx=10, sticky='NS', pady=10, row=2, column=5)
+        tk.Scale(win, label='Kd', variable=self.Kd, from_=0.0, to=1.0, resolution=0.05, 
                 command=update_pid).grid(padx=10, sticky='NS', pady=10, row=2, column=6)
         # start the loop
         self.win.after(0, self.animation)

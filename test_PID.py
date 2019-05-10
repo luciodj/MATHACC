@@ -17,7 +17,8 @@ def test_derivative():
     assert(pid.error == 10)
     assert(out == 10)
 
-def test_window_init():
-    assert(APPWindow())
+#cannot test tkinter with Travis running pytest on a headless ububntu instance...
+#def test_window_init():
+#    assert(APPWindow())
     # cannot call tk.mainloop because that is a blocking call
     

@@ -1,11 +1,11 @@
-#!usr/bin/env python
+#!/usr/bin/env python3
 """
 Rocket Science PID-MATHACC demo
 Author: Lucio Di Jasio
 twitter: @luciodjs
 url: https://flyingpic24.com/rocket
 """
-import Tkinter as tk
+import tkinter as tk
 
 KP = 0.89      # 0.89
 KI = 0.028     # 0.028

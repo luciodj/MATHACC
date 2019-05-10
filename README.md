@@ -1,4 +1,4 @@
-# MATHACC
+# MATHACC [![Build Status](https://travis-ci.org/luciodj/MATHACC.svg?branch=master)](https://travis-ci.org/luciodj/MATHACC)
 A Rocket Science demonstration of a PID peripheral
 
 Trying to exemplify what a PID peripheral (the MATHACC available on the PIC16F161x series) can do ... although it got a bit out of hand. I'll blame it on Space X.

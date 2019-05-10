@@ -48,7 +48,7 @@ class PID(object):
 
     def set(self, k_p, k_i, k_d):
         PID.k_p = k_p * DELTA_T
-        PID.k_i = k_i * DELTA_T
+        PID.k_i = k_i * DELTA_T * DELTA_T
         PID.k_d = k_d
 
 
